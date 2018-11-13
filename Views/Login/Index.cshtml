@@ -1,0 +1,199 @@
+﻿
+@{
+    ViewBag.Title = "Test for Hyperledger-Car";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>@ViewBag.Title</h3>
+
+
+<div>Test Api Url: <a href="@ViewBag.ApiUrl">@ViewBag.ApiUrl</a></div><br />
+<span>Test Parameter: </span><input id="txtPara" type="text" placeholder="Parameter" width="2000" />
+<br />
+<input type="button" id="btnSend" value="Send test message" onclick="SendTest()" />
+<hr /><br />
+<span>Query Parameter: </span><input id="txtPara1" type="text" placeholder="Chain ID" value="fabcar" />
+<input id="txtPara2" type="text" placeholder="Query Method" value="queryAllCars" />
+<input id="txtPara3" type="text" placeholder="Query Parameters" /><br />
+<input id="txtPara4" type="text" placeholder="Invoke Method" value="changeCarOwner" />
+<input id="txtPara5" type="text" placeholder="Invoke Car Key" />
+<input id="txtPara6" type="text" placeholder="Invoke Car Owner" />
+
+<br />
+<button id="btnSendQuery" onclick="SendQuery()">Query</button>
+<button id="btnInvokeChangeCar" onclick="InvokeCar()">Change Owner</button>
+<br />
+<input type="text" class="text-left" id="txtMessage" style="width: 800px" />
+<hr/>
+<p id="result"></p>
+
+
+<script type="text/javascript">
+
+    function SendTest() {
+        var params = $("#txtPara").val();
+        $('#txtMessage').val('Sending test message...' + params);
+
+        $.ajax({
+            data: params,
+            url: '@ViewBag.ApiUrl',
+            type: 'POST',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                $('#txtMessage').val('Ret: len=' + data.length + '; data=' + data + '; data.aa=' + data.aa);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#txtMessage').val('Return Error!! ' + textStatus + " " + errorThrown);
+            }
+        });
+
+    }
+
+    function SendQuery() {
+        var params = {
+            chainID: $("#txtPara1").val(),
+            queryMethod: $("#txtPara2").val(),
+            queryArgs: [$("#txtPara3").val()] // Array
+        }
+        $('#txtMessage').val('Query...' + params);
+
+        $.ajax({
+            data: params,
+            url: '@ViewBag.QueryUrl',
+            type: 'GET',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                if (data.length > 0) {
+                    ShowCars(data);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#txtMessage').val('Return Error!! ' + textStatus + " " + errorThrown);
+            }
+        });
+
+    }
+
+    function ShowCars(data) {
+        var carinfo;
+        var htmltext = '<table border=1><tr><td>Key</td><td>CarColor</td><td>Maker</td><td>Model</td><td>Owner</td></tr>';
+        for (var ii = 0; ii < data.length; ii++) {
+            carinfo += '<tr><td>' + ii + ': ' + data[ii].Key + '</td>';
+            carinfo += '<td>' + data[ii].Record.colour + '</td><td>' + data[ii].Record.make + '</td><td>' + data[ii].Record.model + '</td><td>' + data[ii].Record.owner + '</td></tr>';
+        }
+        htmltext += carinfo + '</table>';
+
+        var result = document.getElementById('result');
+        result.innerHTML = htmltext;
+    }
+
+
+    function InvokeCar() {
+        var params = {
+            chainID: $("#txtPara1").val(),
+            invokeMethod: $("#txtPara4").val(),
+            invokeArgs: [$("#txtPara5").val(), $("#txtPara6").val(),],
+        };
+        $('#txtMessage').val('Invoke > changing...' + params);
+        $.ajax({
+            data: params,
+            url: '@ViewBag.InvokeUrl',
+            type: 'POST',
+            dataType: 'json',
+            cache: false,
+            //async: false,
+            timeout: 5000,
+            success: function (data) {
+                $('#txtMessage').val('status=' + data.event_status);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('#txtMessage').val('error!! ' + textStatus + " " + errorThrown);
+            }
+        });
+    }
+
+</script>
+
+
+
+<script type="text/javascript">
+
+    @*$(document).ready(function () {
+        $('#btnSend').click(function (e) {
+            e.preventDefault(); // stops the default action of an element from happening
+            var params = {
+                testParams: $("#txtPara").val() //get value
+            };
+
+            $('#txtMessage').val('Sending 1...' + params);
+
+            $.ajax({
+                data: params,
+                url: '@ViewBag.ApiUrl',
+                type: 'POST',
+                dataType: 'json',
+                cache: false,
+                timeout: 8000,
+                success: function (data) {
+                    $('#txtMessage').val('data=' + data + '; ' + data.aa);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $('#txtMessage').val('Return Error!! ' + textStatus + " " + errorThrown);
+                }
+            });
+        });*@
+
+        //$('#getQuery').click(function (e) {
+        //    e.preventDefault(); // stops the default action of an element from happening
+        //    var params = {
+        //        chainID: $("#params2").val(),
+        //        queryMethod: $("#params3").val(),
+        //        queryArgs: [$("#params8").val()] // Array
+        //    };
+        //    $.ajax({
+        //        data: params,
+        //        url: 'http://172.18.136.123:2233/api/query',
+        //        type: 'GET',
+        //        cache: false,
+        //        //async: false,
+        //        timeout: 5000,
+        //        success: function (data) {
+        //            alert(data);
+        //        },
+        //        error: function (jqXHR, textStatus, errorThrown) {
+        //            alert('error!! ' + textStatus + " " + errorThrown);
+        //        }
+        //    });
+        //});
+        //$('#getInvoke').click(function (e) {
+        //    e.preventDefault(); // stops the default action of an element from happening
+
+        //    var params = {
+        //        chainID: $("#params4").val(),
+        //        invokeMethod: $("#params5").val(),
+        //        invokeArgs: [$("#params6").val(), $("#params7").val()],
+        //    };
+        //    $.ajax({
+        //        data: params,
+        //        url: 'http://172.18.136.123:2233/api/invoke',
+        //        type: 'POST',
+        //        dataType: 'json',
+        //        cache: false,
+        //        //async: false,
+        //        timeout: 5000,
+        //        success: function (data) {
+        //            alert(data.event_status);
+        //        },
+        //        error: function (jqXHR, textStatus, errorThrown) {
+        //            alert('error!! ' + textStatus + " " + errorThrown);
+        //        }
+        //    });
+        //});
+
+    //});
+
+</script>
